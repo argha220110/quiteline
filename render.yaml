@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: quietline
+    runtime: python
+    plan: free
+    buildCommand: "echo 'No third-party packages to install'"
+    startCommand: "python server.py"
