@@ -11,7 +11,7 @@ cd /path/to/outputs
 python3 ../server.py
 ```
 
-Then open [http://localhost:8000](http://localhost:8000) in two browser windows or on two devices that can reach the host. Set `PORT` to use another port. Both people enter the same room name and the same private encryption phrase. Use a long phrase (ideally several random words) and share it through a separate trusted channel. Each browser session gets a temporary guest identity.
+Then open [http://localhost:8000](http://localhost:8000) in two browser windows or on two devices that can reach the host. Set `PORT` to use another port. Both people enter the same room name and encryption phrase. You can generate random room details in the app. Share the invite link and phrase through separate trusted channels. Display names are stored only in each browser; room members and messages update while the room is open. Video calls are currently one-to-one.
 
 The repository root includes a `Dockerfile` and Docker Compose setup with Caddy for HTTPS. Copy `.env.example` to `.env`, set `APP_DOMAIN` to a domain whose DNS points to your server, then run `docker compose up -d --build` from the repository root. Allow inbound ports 80 and 443 in the server firewall. Caddy obtains and renews the TLS certificate automatically. For a plain local container, use `docker build -t quietline .` and `docker run --rm -p 8000:8000 quietline`.
 
