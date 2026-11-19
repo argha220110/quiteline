@@ -60,7 +60,8 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(self.rfile.read(n))
             room, sender, kind, payload = body["room"], body["sender"], body["kind"], body["payload"]
             if not isinstance(room, str) or not 1 <= len(room) <= 80 or not isinstance(sender, str) or len(sender) > 80: raise ValueError()
-            if kind not in ("ciphertext", "offer", "answer", "candidate", "hangup", "presence"): raise ValueError()
+            if not isinstance(payload, dict): raise ValueError()
+            if kind not in ("ciphertext", "offer", "answer", "candidate", "hangup", "presence", "leave"): raise ValueError()
         except Exception:
             self.respond({"error": "invalid request"}, 400); return
         with lock:
@@ -69,8 +70,15 @@ class Handler(BaseHTTPRequestHandler):
             state["events"] = [e for e in state["events"] if e["time"] >= cutoff]
             if kind == "presence":
                 now = int(time.time())
-                state["members"][sender] = {"id": sender, "seen": now}
+                name = payload.get("name", "Guest")
+                if not isinstance(name, str): name = "Guest"
+                name = " ".join(name.split())[:32] or "Guest"
+                state["members"][sender] = {"id": sender, "name": name, "seen": now}
                 state["members"] = {k:v for k,v in state["members"].items() if now-v["seen"] < 25}
+                self.respond({"ok": True})
+                return
+            if kind == "leave":
+                state["members"].pop(sender, None)
                 self.respond({"ok": True})
                 return
             event = {"id": state["next"], "sender": sender, "kind": kind, "payload": payload, "time": int(time.time())}
