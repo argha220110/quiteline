@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101b17"><title>Quietline — private by design</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main id="entry" class="entry-shell">
+    <div class="entry-card">
+      <div class="brand-mark large"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 11.5A5.5 5.5 0 0 1 12.5 6h15a5.5 5.5 0 0 1 5.5 5.5v10a5.5 5.5 0 0 1-5.5 5.5H19l-8 6v-6.2a5.5 5.5 0 0 1-4-5.3z"/><path d="m14 16 4 4 8-8" class="mark-cut"/></svg></div>
+      <p class="eyebrow">A quieter kind of connection</p><h1>Your conversations,<br><em>yours alone.</em></h1>
+      <p class="entry-copy">Private messaging and direct video calls. Your encryption phrase stays on this device. It never goes to our relay.</p>
+      <form id="joinForm" class="join-form">
+        <label>Room name<input id="roomInput" autocomplete="off" minlength="2" maxlength="48" placeholder="e.g. sunday-coffee" required></label>
+        <label>Encryption phrase<input id="secretInput" type="password" autocomplete="new-password" minlength="10" maxlength="200" placeholder="Use the same phrase with your contact" required></label>
+        <div class="form-hint"><span class="lock-mini">⌑</span> At least 10 characters. Share it with your contact in person.</div>
+        <button class="primary full" type="submit">Open private room <span>→</span></button>
+      </form>
+      <div class="entry-foot"><span class="pulse"></span> No account. Relay queue clears after one hour.</div>
+    </div>
+    <aside class="entry-aside"><div class="orbit orbit-a"></div><div class="orbit orbit-b"></div><div class="aside-caption"><span class="tiny-shield">◆</span><div><b>Encryption happens here.</b><small>Messages leave your device already locked.</small></div></div><span class="aside-word">quiet<span>line</span></span></aside>
+  </main>
+  <section id="app" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="side-top"><div class="brand-lockup"><span class="brand-mark"><svg viewBox="0 0 40 40"><path d="M7 11.5A5.5 5.5 0 0 1 12.5 6h15a5.5 5.5 0 0 1 5.5 5.5v10a5.5 5.5 0 0 1-5.5 5.5H19l-8 6v-6.2a5.5 5.5 0 0 1-4-5.3z"/><path d="m14 16 4 4 8-8" class="mark-cut"/></svg></span><b>quietline</b></div><button id="leaveBtn" class="icon-button" title="Leave room">↗</button></div>
+      <div class="you-card"><div class="avatar avatar-you">Y</div><div class="you-meta"><span class="you-name">You</span><span class="presence"><i></i> Here now</span></div><button class="dots" aria-label="Account menu">···</button></div>
+      <div class="section-label">PRIVATE ROOM <span class="room-indicator"><i></i> LIVE</span></div>
+      <div class="room-card"><div class="room-icon">⌑</div><div class="room-details"><strong id="roomName">—</strong><small>Phrase encrypted</small></div><button id="copyRoom" class="copy-icon" title="Copy room name">⧉</button></div>
+      <div class="section-label contacts-label">IN THIS ROOM <span id="memberCount">01</span></div>
+      <div id="memberList" class="member-list"></div>
+      <div class="sidebar-bottom"><div class="relay-card"><div class="relay-icon">◈</div><div><strong>Relay can’t read</strong><small>Only encrypted data passes through.</small></div></div><div class="side-links"><span>Quiet by design</span><span>v1.0</span></div></div>
+    </aside>
+    <section class="conversation">
+      <header class="chat-header"><div class="chat-person"><div class="avatar avatar-contact">?</div><div><h2 id="contactName">Waiting for someone</h2><div id="connectionStatus" class="status-line"><i></i> Share the room name and phrase</div></div></div><div class="header-actions"><div class="e2e-chip"><span>⌑</span> END-TO-END ENCRYPTED</div><button id="callBtn" class="call-button" disabled><span>◉</span> Video call</button><button id="mobileMenu" class="icon-button menu-mobile">☰</button></div></header>
+      <div class="room-notice"><span class="notice-lock">⌑</span><span>Messages and calls are encrypted on your devices. <button id="learnMore">Learn how it works</button></span><button id="noticeClose" aria-label="Dismiss">×</button></div>
+      <div id="messages" class="messages"><div class="day-divider"><span>YOUR PRIVATE SPACE</span></div><div class="welcome-message"><div class="welcome-symbol">⌑</div><h3>A room for just you two.</h3><p>Send a message to get started. It’s encrypted before it leaves your device.</p><div class="welcome-tags"><span>✳ Private messages</span><span>◉ Direct video calls</span></div></div></div>
+      <div class="composer-wrap"><div class="typing-indicator" id="typingIndicator"></div><form id="messageForm" class="composer"><button type="button" class="attach-button" title="Attachments coming soon">＋</button><textarea id="messageInput" rows="1" maxlength="4000" placeholder="Write a private message…" disabled></textarea><button class="send-button" type="submit" disabled aria-label="Send message">↑</button></form><div class="composer-hint"><span>↵ to send <b>·</b> shift + ↵ for a new line</span><span><i class="tiny-lock">⌑</i> encrypted on this device</span></div></div>
+    </section>
+    <aside id="callPanel" class="call-panel hidden"><div class="call-panel-top"><span class="live-call"><i></i> PRIVATE CALL</span><button id="closeCall" class="icon-button">×</button></div><div class="call-stage"><video id="remoteVideo" autoplay playsinline></video><div id="remotePlaceholder" class="remote-placeholder"><div class="avatar avatar-contact big">?</div><strong id="callName">Your contact</strong><span id="callState">Waiting for them to join…</span><div class="call-rings"><i></i><i></i><i></i></div></div><video id="localVideo" autoplay muted playsinline></video><div class="video-overlay"><span>⌑ &nbsp;Peer-to-peer encrypted</span></div></div><div class="call-controls"><button id="muteBtn" class="control-button"><span>♩</span><small>Mute</small></button><button id="cameraBtn" class="control-button"><span>▣</span><small>Camera</small></button><button id="hangupBtn" class="hangup-button">☎</button><button id="shareBtn" class="control-button"><span>⌗</span><small>Share invite</small></button></div><div class="call-foot">Your video travels directly between devices.</div></aside>
+  </section>
+  <div id="modal" class="modal hidden"><div class="modal-card"><button id="modalClose" class="modal-close">×</button><div class="modal-icon">⌑</div><p class="eyebrow">A note on privacy</p><h3>Private by how it works.</h3><p>Your phrase is used on this device to derive an AES-GCM encryption key. The relay sees room names, connection metadata and encrypted messages, but it never receives the phrase or key.</p><p>Calls use direct WebRTC connections protected by DTLS-SRTP. A network relay may forward encrypted media when a direct connection isn’t possible. Compare your phrase out of band and use HTTPS when hosting this app publicly.</p><button id="modalDone" class="primary full">Got it</button></div></div>
+  <div id="toast" class="toast"></div>
+  <script src="/app.js" defer></script>
+</body></html>
