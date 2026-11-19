@@ -3,5 +3,6 @@ services:
     name: quietline
     runtime: python
     plan: free
-    buildCommand: "echo 'No third-party packages to install'"
-    startCommand: "python server.py"
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 16 --timeout 60 --access-logfile -"
+    healthCheckPath: /health
