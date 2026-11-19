@@ -11,7 +11,7 @@ cd /path/to/outputs
 python3 ../server.py
 ```
 
-Then open [http://localhost:8000](http://localhost:8000) in two browser windows or on two devices that can reach the host. Set `PORT` to use another port. Both people enter the same room name and encryption phrase. You can generate random room details in the app. Share the invite link and phrase through separate trusted channels. Display names are stored only in each browser; room members and messages update while the room is open. Video calls are currently one-to-one.
+Then open [http://localhost:8000](http://localhost:8000) in two browser windows or on two devices that can reach the host. Set `PORT` to use another port. Both people enter the same room name and encryption phrase. You can generate random room details in the app. Share the invite link and phrase through separate trusted channels. Display names are saved in the browser and visible to current room members; the relay sees them while you are online. Video calls are currently one-to-one.
 
 The repository root includes a `Dockerfile` and Docker Compose setup with Caddy for HTTPS. Copy `.env.example` to `.env`, set `APP_DOMAIN` to a domain whose DNS points to your server, then run `docker compose up -d --build` from the repository root. Allow inbound ports 80 and 443 in the server firewall. Caddy obtains and renews the TLS certificate automatically. For a plain local container, use `docker build -t quietline .` and `docker run --rm -p 8000:8000 quietline`.
 
@@ -27,6 +27,6 @@ For use across the internet, put the app behind HTTPS. Browsers only allow camer
 
 ## Security boundaries
 
-The phrase is a shared secret, so anyone who learns it can read room messages. The phrase is not sent to the relay, but anyone who can access a participant's device or browser session can read that participant's messages. This app does not yet provide verified identities, device management, message history, attachments, push notifications, abuse controls, or multi-device key rotation. Room names and connection metadata are visible to the relay. Use a unique, high-entropy phrase and compare it with your contact in person or through another trusted channel.
+The phrase is a shared secret, so anyone who learns it can read room messages. The phrase is not sent to the relay, but anyone who can access a participant's device or browser session can read that participant's messages. This app does not yet provide verified identities, device management, message history, attachments, push notifications, abuse controls, or multi-device key rotation. Room names, display names and connection metadata are visible to the relay. Use a unique, high-entropy phrase and compare it with your contact in person or through another trusted channel.
 
 This is a small self-hostable app, not an audited cryptographic product. The Python relay is an in-memory demonstrator intended for small private rooms; for public deployment, add authentication, rate limiting, monitoring, robust TURN configuration, and a security review.
