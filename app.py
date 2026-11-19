@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import os
+import ipaddress
 import threading
 import time
+from collections import deque
 from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory
@@ -15,11 +17,15 @@ MAX_ROOMS = 1000
 MAX_MEMBERS = 32
 ROOM_TTL = 3600
 MEMBER_TTL = 25
+RATE_WINDOW_SECONDS = 60
+RATE_LIMIT_PER_IP = 3000
+MAX_RATE_LIMIT_CLIENTS = 10000
 ALLOWED_KINDS = {"ciphertext", "offer", "answer", "candidate", "hangup", "presence", "leave"}
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 64 * 1024
 rooms: dict[str, dict] = {}
+request_times: dict[str, deque] = {}
 lock = threading.Lock()
 
 
@@ -57,6 +63,44 @@ def room_for(key: str, now: int) -> dict:
         rooms[key] = state
     state["updated"] = now
     return state
+
+
+def client_ip() -> str:
+    """Use the address appended by the trusted hosting/reverse proxy."""
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    candidate = forwarded.split(",")[-1].strip() if forwarded else (request.remote_addr or "unknown")
+    try:
+        return str(ipaddress.ip_address(candidate))
+    except ValueError:
+        return request.remote_addr or "unknown"
+
+
+@app.before_request
+def limit_api_requests():
+    if request.path not in {"/api/poll", "/api/relay"}:
+        return None
+    now = time.monotonic()
+    cutoff = now - RATE_WINDOW_SECONDS
+    key = client_ip()
+    with lock:
+        bucket = request_times.get(key)
+        if bucket is None:
+            if len(request_times) >= MAX_RATE_LIMIT_CLIENTS:
+                for old_key, old_bucket in list(request_times.items()):
+                    if not old_bucket or old_bucket[-1] <= cutoff:
+                        del request_times[old_key]
+                if len(request_times) >= MAX_RATE_LIMIT_CLIENTS:
+                    return jsonify(error="server is busy; try again shortly"), 503
+            bucket = request_times[key] = deque()
+        while bucket and bucket[0] <= cutoff:
+            bucket.popleft()
+        if len(bucket) >= RATE_LIMIT_PER_IP:
+            response = jsonify(error="too many requests; please wait a minute and try again")
+            response.status_code = 429
+            response.headers["Retry-After"] = str(max(1, int(bucket[0] + RATE_WINDOW_SECONDS - now)))
+            return response
+        bucket.append(now)
+    return None
 
 
 @app.get("/")

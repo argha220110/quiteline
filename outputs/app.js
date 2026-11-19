@@ -128,7 +128,7 @@
       toast('Room ready. Share the invite link and send the phrase separately.');
     } catch (err) {
       console.error(err);
-      toast('Could not start the room. Check your connection and try again.');
+      toast(relayErrorText(err));
       submit.disabled = false;
       submit.textContent = 'Open private room →';
     }
@@ -139,7 +139,20 @@
       method:'POST', headers:{'Content-Type':'application/json'},
       body:JSON.stringify({room:state.room, sender:state.id, kind, payload})
     });
-    if (!res.ok) throw new Error('Relay request failed');
+    if (!res.ok) {
+      let detail = {};
+      try { detail = await res.json(); } catch (_) { /* response may not be JSON */ }
+      const error = new Error(detail.error || 'Relay request failed');
+      error.status = res.status;
+      throw error;
+    }
+  }
+
+  function relayErrorText(error) {
+    if (error?.status === 429) return 'Too many requests. Wait a minute, then try again.';
+    if (error?.status === 503) return error.message.includes('room capacity') ? 'The relay is at room capacity. Try again later.' : 'The relay is busy. Try again shortly.';
+    if (error?.status === 413) return 'This message or call setup is too large to send.';
+    return 'The relay could not be reached. Check your connection and try again.';
   }
 
   async function announce() { await relay('presence', {name:state.name}); }
@@ -150,13 +163,19 @@
     try {
       await announce();
       const res = await fetch(`/api/poll?room=${encodeURIComponent(state.room)}&since=${state.cursor}`, {cache:'no-store'});
-      if (!res.ok) throw new Error('poll failed');
+      if (!res.ok) {
+        let detail = {};
+        try { detail = await res.json(); } catch (_) { /* response may not be JSON */ }
+        const error = new Error(detail.error || 'poll failed');
+        error.status = res.status;
+        throw error;
+      }
       const data = await res.json();
       state.cursor = Math.max(state.cursor, data.cursor || 0);
       renderMembers(data.members || []);
       for (const event of data.events || []) if (event.sender !== state.id) await handleEvent(event);
-    } catch (_) {
-      setStatus('Reconnecting to the room…', false);
+    } catch (error) {
+      setStatus(error?.status === 429 ? 'Rate limit reached · wait a minute and retry' : error?.status === 503 ? 'Relay is busy · retrying shortly' : 'Reconnecting to the room…', false);
     } finally { state.pollBusy = false; }
   }
 
@@ -241,7 +260,7 @@
       addMessage(text, true, Date.now() / 1000, state.name);
       input.value = '';
       input.style.height = 'auto';
-    } catch (_) { toast('Message could not be sent. Check your connection.'); }
+    } catch (error) { toast(relayErrorText(error)); }
     finally { sendButton.disabled = !input.value.trim(); }
   });
 
